@@ -4,7 +4,7 @@ MINGW_CC_PATH = /usr/bin/x86_64-w64-mingw32-gcc
 # SPEEDCHANGE_DLL_SRC = srcs/speedchange/speedchange_dll.c
 # SPEEDCHANGE_DLL_NAME = speedchange.dll
 
-NAME = pouetpouet
+NAME = pouetpouet.exe
 
 CC = gcc -Wall -Wextra -Werror
 MINGW_CC = $(MINGW_CC_PATH) -Wall -Wextra -Werror
@@ -38,6 +38,9 @@ $(NAME):	$(OBJS)
 	@echo "$(PURPLE)Linking $(PURPLE)*.o into $(PURPLE_BOLD)$(NAME)$(RESET)"
 	@$(MINGW_CC) $(OBJS) -o $(NAME)
 	@echo "$(GREEN_BOLD)Done compiling $(GREEN_UNDERLINE)$(NAME)"
+
+# TODO remove this (only for dev), also copy file to windows susbsystem instead of using wsl
+	@cp $(NAME) /mnt/e/Dev/voicemeeter_bypass_output/$(NAME)
 
 # $(SPEEDCHANGE_DLL_NAME): $(SPEEDCHANGE_DLL_SRC):
 # 	gcc -shared -o speedChange.dll speedChange.dll.c -I./minhook-master/include -L./minhook-master/lib -lMinHook

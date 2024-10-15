@@ -1,0 +1,2 @@
+P->04110D90
+ptr address = voicemeeter8.exe+003B7BF8
