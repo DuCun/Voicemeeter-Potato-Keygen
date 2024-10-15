@@ -55,6 +55,18 @@ const VoicemeeterInit initVoicemeeter[] = {
 
 int main(int argc, char **argv)
 {
+    (void) argc;;
+    (void) argv;
+
+    printf("Hello pouet\n");
+    while (1)
+    {
+        printf("test\n");
+        Sleep(1000);
+    }
+    system("pause");
+    return 0;
+
 #if defined(MODIFY_TIME_LEFT_VARIABLE) | defined(MODIFY_FUNCTION_CODE)
     DWORD processId;
 
@@ -72,7 +84,7 @@ int main(int argc, char **argv)
         sprintf(logMsg, "Waiting for Voicemeeter to start... attempts left: %i\n", attempts);
         makelog(logMsg);
 #endif
-        for (int i = 0; i < sizeof(initVoicemeeter) / sizeof(VoicemeeterInit); i++) // sizeof() gives the size in bytes of a variable
+        for (unsigned int i = 0; i < sizeof(initVoicemeeter) / sizeof(VoicemeeterInit); i++) // sizeof() gives the size in bytes of a variable
         {
             if (findProcess(initVoicemeeter[i].processName, &processId))
             {

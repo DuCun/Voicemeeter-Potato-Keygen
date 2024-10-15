@@ -2,3 +2,5 @@
 *.exe
 *.pdb
 VoicemeeterBypass.log
+*.o
+minHook/
