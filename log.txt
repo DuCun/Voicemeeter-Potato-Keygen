@@ -1,0 +1,18 @@
+[2024-10-15 17:38:02] Voicemeeter Bypass started
+[2024-10-15 17:38:03] Waiting for Voicemeeter to start... (0 / 120000 ms elapsed)
+[2024-10-15 17:38:03] Waiting for Voicemeeter to start... (612 / 120000 ms elapsed)
+[2024-10-15 17:38:04] Waiting for Voicemeeter to start... (1175 / 120000 ms elapsed)
+[2024-10-15 17:38:04] Waiting for Voicemeeter to start... (1740 / 120000 ms elapsed)
+[2024-10-15 17:38:05] Waiting for Voicemeeter to start... (2307 / 120000 ms elapsed)
+[2024-10-15 17:38:06] Voicemeeter Bypass started
+[2024-10-15 17:38:06] Waiting for Voicemeeter to start... (0 / 120000 ms elapsed)
+[2024-10-15 17:38:06] Waiting for Voicemeeter to start... (567 / 120000 ms elapsed)
+[2024-10-15 17:38:07] Voicemeeter Bypass started
+[2024-10-15 17:38:07] Waiting for Voicemeeter to start... (0 / 120000 ms elapsed)
+[2024-10-15 17:38:07] Waiting for Voicemeeter to start... (564 / 120000 ms elapsed)
+[2024-10-15 17:38:08] Voicemeeter Bypass started
+[2024-10-15 17:38:08] Waiting for Voicemeeter to start... (0 / 120000 ms elapsed)
+[2024-10-15 17:38:09] Waiting for Voicemeeter to start... (568 / 120000 ms elapsed)
+[2024-10-15 17:38:10] Voicemeeter Bypass started
+[2024-10-15 17:38:10] Waiting for Voicemeeter to start... (0 / 120000 ms elapsed)
+[2024-10-15 17:38:11] Waiting for Voicemeeter to start... (566 / 120000 ms elapsed)

@@ -1,7 +1,7 @@
 # SRCS = $(wildcard srcs/*.cpp)
-SRCS = simplecheat.cpp 
-OBJS = $(SRCS:.cpp=.o)
-MINGW_CC_PATH = /usr/bin/i686-w64-mingw32-g++
+SRCS = $(wildcard srcs/*.c)
+OBJS = $(SRCS:.c=.o)
+MINGW_CC_PATH = /usr/bin/i686-w64-mingw32-gcc
 # 32 bits since voicemeeter is 32 bits
 
 # SPEEDCHANGE_DLL_SRC = srcs/speedchange/speedchange_dll.c
@@ -34,9 +34,10 @@ SAME_LINE = \033[0G\033[2K
 
 RESET = \033[0m
 
-%.o: %.cpp
+%.o: %.c
 	@$(MINGW_CC) -c $< -o $@
 	@echo -n "$(SAME_LINE)$(AQUA)Compiling $(AQUA_BOLD)$<$(RESET)"
+
 
 $(NAME):	$(OBJS)
 	@echo
