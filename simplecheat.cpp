@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <tlhelp32.h> //for CreateToolhelp32Snapshot
 #include <stdio.h>
+#include <iostream>
 
 DWORD findPidByName(const char *name)
 {
@@ -43,11 +44,12 @@ DWORD GetBaseAddress(DWORD pid) {
     }
 
     CloseHandle(hSnapshot);
-    
+    return 0;
 }
 
 int main()
 {
+	// std::cout << "test" << std::endl;
 	
 	int pid = findPidByName("voicemeeter8.exe");
 
@@ -60,9 +62,9 @@ int main()
 		if (handleToProcess)
 		{
 			printf("try memory read\n");
-			void *address = (void *)GetBaseAddress(pid) + 0x003B7BF8;
+			void *address = (void *)((unsigned int)GetBaseAddress(pid) + 0x003B7BF8);
 			DWORD offset = 0x10D48;
-			printf("address: %p (%ul)\n", address, address);
+			printf("address: %p\n", address);
 
 
 			unsigned int data = 123456;
@@ -72,11 +74,22 @@ int main()
 			printf("Res: %u\n", data);
 			// data + offset gives the address of the value
 
-			void *targetAddress = (void *)data + offset;
+			void *targetAddress = (void *)(data + offset);
 			printf("Target address: %p\n", targetAddress);
 			int timer = 0;
 			ReadProcessMemory(handleToProcess, targetAddress, &timer, sizeof(timer), NULL);
 			printf("Timer: %d\n", timer);
+
+			// now write targetaddress to 0
+			int newValue = 0;
+			if (WriteProcessMemory(handleToProcess, targetAddress, &newValue, sizeof(newValue), NULL))
+			{
+				printf("Timer value successfully modified.\n");
+			}
+			else
+			{
+				printf("Failed to modify the timer value.\n");
+			}
 
 		}
 		else
