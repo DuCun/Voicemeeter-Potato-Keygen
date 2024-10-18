@@ -1,5 +1,6 @@
 Voicemeeter "Keygen"
-====================n
+====================
+
 This is a working semi-automated tool to generate a key for Voicemeeter Potato.
 
 To use it:
