@@ -1,6 +1,6 @@
 .vscode
 *.exe
 *.pdb
-VoicemeeterBypass.log
+*.log
 *.o
 .vs
