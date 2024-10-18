@@ -31,7 +31,7 @@ void make_log(const char *format, ...)
     vprintf(format, args); // printf
     va_end(args);
 
-    FILE *f = fopen("log.txt", "a");
+    FILE *f = fopen(VOICEMEETER_BYPASS_LOG_FILE, "a");
     if (f)
     {
         // print to file

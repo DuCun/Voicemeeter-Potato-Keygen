@@ -1,18 +1,19 @@
 # SRCS = $(wildcard srcs/*.cpp)
 SRCS = $(wildcard srcs/*.c)
 OBJS = $(SRCS:.c=.o)
-MINGW_CC_PATH = /usr/bin/i686-w64-mingw32-gcc
+# Replace with absolute path if needed
+MINGW_CC_PATH = x86_64-w64-mingw32-gcc
 # 32 bits since voicemeeter is 32 bits
 
 # SPEEDCHANGE_DLL_SRC = srcs/speedchange/speedchange_dll.c
 # SPEEDCHANGE_DLL_NAME = speedchange.dll
 
-NAME = pouetpouet.exe
+NAME = VoicemeeterKeygen.exe
 
 # CC = gcc -Wall -Wextra -Werror
 
 # https://stackoverflow.com/questions/4702732/the-program-cant-start-because-libgcc-s-dw2-1-dll-is-missing
-MINGW_CC = $(MINGW_CC_PATH) -m32 -Wall -Wextra -Werror -static -static-libgcc -static-libstdc++
+MINGW_CC = $(MINGW_CC_PATH) -Wall -Wextra -Werror -static -static-libgcc -static-libstdc++
 
 SHELL = zsh
 

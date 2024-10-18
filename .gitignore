@@ -3,5 +3,4 @@
 *.pdb
 VoicemeeterBypass.log
 *.o
-minHook/
-windows-headers/
+.vs
