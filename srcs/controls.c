@@ -34,7 +34,16 @@ t_registration_window_controls fetch_registration_window_controls() {
     EnumChildWindows(window_hwnd, _enum_registration_window_childs, (LPARAM)&registration_window_controls);
 
     if (registration_window_controls.mail_input == NULL || registration_window_controls.registration_code_input == NULL || registration_window_controls.activate_license_button == NULL) {
-        make_log("[ERROR] Failed to find all controls in registration window.");
+        make_log("[ERROR] Failed to find all controls in registration window:");
+        if (registration_window_controls.mail_input == NULL) {
+            make_log("\t- Mail input not found.");
+        }
+        if (registration_window_controls.registration_code_input == NULL) {
+            make_log("\t- Registration code input not found.");
+        }
+        if (registration_window_controls.activate_license_button == NULL) {
+            make_log("\t- Activate license button not found.");
+        }
         return registration_window_controls;
     }
 
@@ -48,4 +57,13 @@ LRESULT send_message_to_handle(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 
 LRESULT send_post_message_to_handle(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     return PostMessage(hwnd, message, wParam, lParam);
+}
+
+unsigned __stdcall click_on_window_1_1(void *hwnd) {
+	HWND window_hwnd = (HWND)hwnd;
+	SetForegroundWindow(window_hwnd);
+	LPARAM lparam = MAKELPARAM(1, 1); // coordinates are relative to the window
+	PostMessage(window_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam);
+	PostMessage(window_hwnd, WM_LBUTTONUP, MK_LBUTTON, lparam);
+	return 0;
 }

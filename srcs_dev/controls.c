@@ -59,3 +59,12 @@ LRESULT send_message_to_handle(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 LRESULT send_post_message_to_handle(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     return PostMessage(hwnd, message, wParam, lParam);
 }
+
+unsigned __stdcall click_on_window_0_0(void *hwnd) {
+	HWND window_hwnd = (HWND)hwnd;
+	SetForegroundWindow(window_hwnd);
+	LPARAM lparam = MAKELPARAM(0, 0); // coordinates are relative to the window
+	SendMessage(window_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam);
+	SendMessage(window_hwnd, WM_LBUTTONUP, MK_LBUTTON, lparam);
+	return 0;
+}

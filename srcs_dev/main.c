@@ -8,16 +8,6 @@
 #include <stdint.h>
 #include <process.h>
 
-unsigned __stdcall do_the_clicky(void *hwnd) {
-	HWND window_hwnd = (HWND)hwnd;
-	SetForegroundWindow(window_hwnd);
-	LPARAM lparam = MAKELPARAM(1, 1); // coordinates are relative to the window
-	SendMessage(window_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam);
-	SendMessage(window_hwnd, WM_LBUTTONUP, MK_LBUTTON, lparam);
-	return 0;
-}
-
-
 int test(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid)
 {
 	DWORD_PTR voicemeeter64_base_address = get_process_base_address(voicemeeter64_pid);
@@ -87,6 +77,7 @@ int test(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid)
 
 				if (context.Rip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
 					make_log("Breakpoint hit at address: %p", breakpoint_address);
+					
 					// expected_code = context.Rax;
 					// make_log("Expected code: %llX", expected_code);
 					if (remove_breakpoint(voicemeeter64_handle, breakpoint_address) != 0) {
