@@ -139,17 +139,23 @@ int main() {
 		return 1;
 	}
 
-
 	test(voicemeeter64_handle, voicemeeter64_pid);
 
+	wait_for_window(REGISTRATION_WINDOW_TITLE, NULL, 1000, 50);
+	// printf("zzzz\n");
+	// Sleep(1000);
 
-	return 0;
 
 
 	t_registration_window_controls controls = fetch_registration_window_controls();
 
 	if (controls.mail_input == NULL || controls.registration_code_input == NULL || controls.activate_license_button == NULL)
+	{
+		printf("Failed to find all controls in registration window.\n");
 		return 1;
+	}
+
+	printf("Controls found\n");
 
 	DWORD_PTR voicemeeter64_base_address = get_process_base_address(voicemeeter64_pid);
 	
