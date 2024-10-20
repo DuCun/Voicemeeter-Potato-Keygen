@@ -30,11 +30,6 @@
 #define DEFAULT_EMAIL "pouet@pouet.pouet"
 #define FORCE_SET_DEFAULT_EMAIL 0 // if true, even if mail is entered it will be set to default email
 
-#define OPEN_BOX_FUNCTION_OFFSET 0x1852F0 // Offset to the function that opens the registration window, needs to be called with the following arguments:
-#define OPEN_BOX_FIRST_ARG_VALUE_OFFSET 0x35AC60 // Offset to the address holding the 1st argument value for the function that opens the registration window, 0x3519B0 also works
-#define OPEN_BOX_SECOND_ARG_LICENSE_ID 0x1F6 // 2nd argument value for the function that opens the registration window (this will open the license window)
-#define OPEN_BOX_SECOND_ARG_VAIO_LICENSE_ID 0x1FC // 2nd argument value for the function that opens the registration window (this will open the vaio license window)
-
 typedef struct s_breakpoint
 {
     unsigned char original_byte;

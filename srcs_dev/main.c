@@ -6,31 +6,125 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <process.h>
 
-typedef void (*open_box_function_t)(uint64_t, uint64_t, uint64_t);
-typedef struct {
-    open_box_function_t func;  // Pointer to the function to call
-    uint64_t arg1;
-    uint64_t arg2;
-    uint64_t arg3;
-} remote_call_args_t;
-
-DWORD WINAPI open_license_box_wrapper(LPVOID lp_param) {
-	remote_call_args_t *args = (remote_call_args_t *)lp_param;
-	args->func(args->arg1, args->arg2, args->arg3);
+unsigned __stdcall do_the_clicky(void *hwnd) {
+	HWND window_hwnd = (HWND)hwnd;
+	SetForegroundWindow(window_hwnd);
+	LPARAM lparam = MAKELPARAM(1, 1); // coordinates are relative to the window
+	SendMessage(window_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam);
+	SendMessage(window_hwnd, WM_LBUTTONUP, MK_LBUTTON, lparam);
 	return 0;
 }
 
-DWORD WINAPI TestFunction(LPVOID param) {
-	(void)param;
-	MessageBoxA(NULL, "Hello from the remote thread!", "Test", MB_OK);
-    Sleep(1000); // Sleep for 1 second to simulate work
-    return 0;
+
+int test(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid)
+{
+	DWORD_PTR voicemeeter64_base_address = get_process_base_address(voicemeeter64_pid);
+	HWND window_hwnd = FindWindow(NULL, VOICEMEETER_POTATO_WINDOW_NAME);
+	if (window_hwnd == NULL) {
+		printf("Window not found\n");
+		return 1;
+	}
+	printf("Window found\n");
+
+	
+
+	int continue_debug = 1;
+	DEBUG_EVENT debug_event;
+	CONTEXT context;
+	void *breakpoint_address = (void *)(voicemeeter64_base_address + 0x17EDD4);
+
+	if (DebugActiveProcess(voicemeeter64_pid) == 0) {
+		make_log("[ERROR] Failed to attach debugger to Voicemeeter process: %d", GetLastError());
+		return 1;
+	}
+
+	while (continue_debug) {
+		if (WaitForDebugEvent(&debug_event, 500) == 0) {
+			int error = GetLastError();
+			if (error == ERROR_SEM_TIMEOUT) {
+				printf("timeout\n");
+				return 1;
+			}
+			else {
+				make_log("[ERROR] Failed to wait for debug event: %d, try to restart Voicemeeter.", GetLastError());
+				return 1;
+			}
+		}
+
+		if (debug_event.dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT) {
+			if (set_breakpoint(voicemeeter64_handle, breakpoint_address) != 0)
+				return 1;
+
+			make_log("Breakpoint is set.");
+			HANDLE thread = (HANDLE)_beginthreadex(NULL, 0, do_the_clicky, window_hwnd, 0, NULL);
+			if (thread == NULL) {
+				make_log("[ERROR] Failed to create thread: %d", GetLastError());
+				return 1;
+			}
+			printf("Thread created\n");
+			
+			printf("Thread done\n");
+			CloseHandle(thread);
+		}
+		else if (debug_event.dwDebugEventCode == EXCEPTION_DEBUG_EVENT) {
+			if (debug_event.u.Exception.ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT) {
+				HANDLE h_thread = OpenThread(THREAD_ALL_ACCESS, FALSE, debug_event.dwThreadId);
+				if (h_thread == NULL) {
+					make_log("[ERROR] Failed to open thread: %d", GetLastError());
+					ContinueDebugEvent(debug_event.dwProcessId, debug_event.dwThreadId, DBG_CONTINUE);
+					continue;
+				}
+
+				context.ContextFlags = CONTEXT_FULL;
+				if (GetThreadContext(h_thread, &context) == 0) {
+					make_log("[ERROR] Failed to get thread context: %d", GetLastError());
+					CloseHandle(h_thread);
+					ContinueDebugEvent(debug_event.dwProcessId, debug_event.dwThreadId, DBG_CONTINUE);
+					continue;
+				}
+
+				if (context.Rip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
+					make_log("Breakpoint hit at address: %p", breakpoint_address);
+					// expected_code = context.Rax;
+					// make_log("Expected code: %llX", expected_code);
+					if (remove_breakpoint(voicemeeter64_handle, breakpoint_address) != 0) {
+						make_log("[ERROR] Failed to remove breakpoint after finding code.");
+						return 1;
+					}
+					context.Rip--; // go back to the original instruction
+					context.Dr7 = 0; // Clear debug register so that app doesn't crash when we resume
+					if (SetThreadContext(h_thread, &context) == 0) {
+						make_log("[ERROR] Failed to set thread context: %d", GetLastError());
+						CloseHandle(h_thread);
+						ContinueDebugEvent(debug_event.dwProcessId, debug_event.dwThreadId, DBG_CONTINUE);
+						continue;
+					}
+
+					continue_debug = 0;
+				}
+				if (CloseHandle(h_thread) == 0) {
+					make_log("[ERROR] Failed to close thread handle: %d", GetLastError());
+					return 1;
+				}
+			}
+		}
+		ContinueDebugEvent(debug_event.dwProcessId, debug_event.dwThreadId, DBG_CONTINUE);
+	}
+
+	if (DebugActiveProcessStop(voicemeeter64_pid) == 0) {
+		make_log("[ERROR] Failed to detach debugger from Voicemeeter process: %d", GetLastError());
+		return 1;
+	}
+
+	return 0;
 }
+
+
 int main() {
 	printf("Start\n");
 	
-
 	DWORD voicemeeter64_pid = find_pid_by_process_name("voicemeeter8x64.exe");
 	if (voicemeeter64_pid == 0)
 	{
@@ -38,7 +132,7 @@ int main() {
 		return 1;
 	}
 
-	HANDLE voicemeeter64_handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, voicemeeter64_pid);
+	HANDLE voicemeeter64_handle = OpenProcess(PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, voicemeeter64_pid);
 	if (voicemeeter64_handle == NULL)
 	{
 		make_log("[ERROR] Failed to open Voicemeeter process handle.");
@@ -46,67 +140,7 @@ int main() {
 	}
 
 
-	uint64_t first_arg_value = 0;
-	if (ReadProcessMemory(voicemeeter64_handle, (void *)(get_process_base_address(voicemeeter64_pid) + OPEN_BOX_FIRST_ARG_VALUE_OFFSET), &first_arg_value, sizeof(uint64_t), NULL) == 0) {
-		make_log("[ERROR] Failed to read first arg value: %d", GetLastError());
-		return 1;
-	}
-
-	printf("First arg value: %llX\n", first_arg_value);
-
-	// open_box_function_t open_box_function = (open_box_function_t)(get_process_base_address(voicemeeter64_pid) + OPEN_BOX_FUNCTION_OFFSET);
-	// remote_call_args_t remote_args = {
-	// 	.func = open_box_function,
-	// 	.arg1 = first_arg_value,
-	// 	.arg2 = OPEN_BOX_SECOND_ARG_LICENSE_ID,  // Replace arg2 with the appropriate value
-	// 	.arg3 = 0   // Replace arg3 with the appropriate value
-	// };
-
-	// LPVOID remote_args_ptr = VirtualAllocEx(voicemeeter64_handle, NULL, sizeof(remote_call_args_t), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	// if (remote_args_ptr == NULL) {
-	// 	make_log("[ERROR] Failed to allocate memory in remote process: %d", GetLastError());
-	// 	return 1;
-	// }
-
-	// if (WriteProcessMemory(voicemeeter64_handle, remote_args_ptr, &remote_args, sizeof(remote_call_args_t), NULL) == 0) {
-	// 	make_log("[ERROR] Failed to write remote args to remote process: %d", GetLastError());
-	// 	VirtualFreeEx(voicemeeter64_handle, remote_args_ptr, 0, MEM_RELEASE);
-	// 	return 1;
-	// }
-
-	// printf("Calling open box function...\n");
-	// printf("Open box function: %p\n", open_box_function);
-
-
-	// HANDLE thread = CreateRemoteThread(voicemeeter64_handle, NULL, 0,
-    //                                open_license_box_wrapper,  // Function to call
-    //                                NULL,                                // Pointer to arguments
-    //                                0, NULL);
-	// if (thread == NULL) {
-	// 	make_log("[ERROR] Failed to create remote thread: %d", GetLastError());
-	// 	VirtualFreeEx(voicemeeter64_handle, remote_args_ptr, 0, MEM_RELEASE);
-	// 	return 1;
-	// }
-	// WaitForSingleObject(thread, INFINITE);  // Wait for the thread to finish
-	// CloseHandle(thread);
-	// VirtualFreeEx(voicemeeter64_handle, remote_args_ptr, 0, MEM_RELEASE);
-
-
-	HANDLE hThread = CreateRemoteThread(voicemeeter64_handle, NULL, 0, TestFunction, NULL, 0, NULL);
-    if (hThread == NULL) {
-        printf("Failed to create remote thread. Error: %ld\n", GetLastError());
-        CloseHandle(voicemeeter64_handle);
-        return 1;
-    }
-
-    // Wait for the thread to finish
-    WaitForSingleObject(hThread, INFINITE);
-
-    // Clean up
-    CloseHandle(hThread);
-    CloseHandle(voicemeeter64_handle);
-
-    printf("Remote thread executed successfully.\n");
+	test(voicemeeter64_handle, voicemeeter64_pid);
 
 
 	return 0;
