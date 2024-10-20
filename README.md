@@ -6,7 +6,7 @@ This is a working automated tool to generate a key for Voicemeeter Potato **Vers
 To use it:
 1. make sure voicemeeter **64 bit** is opened (it can be in tray, as long as the process is running it should work. Make sure it's the 64bit version **voicemeeter8x64.exe**)
 2. launch the executable.
-3. 
+
 And that's it. Voicemeeter should now be activated.
 
 You should not see the "Unlicensed" watermark anymore, and opening the license box again should show a valid license.
