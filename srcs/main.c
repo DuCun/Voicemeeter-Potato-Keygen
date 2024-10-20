@@ -9,7 +9,7 @@
 
 
 int main() {
-	DWORD voicemeeter64_pid = find_pid_by_process_name("voicemeeter8x64.exe");
+	DWORD voicemeeter64_pid = find_pid_by_process_name(VOICEMEETER_PROCESS_NAME);
 	if (voicemeeter64_pid == 0)
 	{
 		make_log("[ERROR] Voicemeeter process not found.");
@@ -24,15 +24,6 @@ int main() {
 	}
 
 	DWORD_PTR voicemeeter64_base_address = get_process_base_address(voicemeeter64_pid);
-
-
-	
-
-
-
-
-
-
 
 	if (FindWindow(NULL, REGISTRATION_WINDOW_TITLE) != NULL) {
 		make_log("Registration window is already open, proceeding with bypass.");
