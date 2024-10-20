@@ -1,9 +1,13 @@
 SRCS = $(wildcard srcs/*.c)
 OBJS = $(SRCS:.c=.o)
+SRCS_DEV = $(wildcard srcs_dev/*.c)
+OBJS_DEV = $(SRCS_DEV:.c=.o)
+
 # Replace with absolute path if needed
 MINGW_CC_PATH = x86_64-w64-mingw32-gcc
 
 NAME = VoicemeeterKeygen.exe
+NAME_DEV = VoicemeeterKeygen_dev.exe
 
 # CC = gcc -Wall -Wextra -Werror
 
@@ -42,6 +46,15 @@ $(NAME):	$(OBJS)
 	@echo "$(GREEN_BOLD)Done compiling $(GREEN_UNDERLINE)$(NAME)"
 
 all:		$(NAME)
+
+dev: $(NAME_DEV)
+
+$(NAME_DEV):	$(OBJS_DEV)
+	@echo
+	@echo "$(PURPLE)Linking $(PURPLE)*.o into $(PURPLE_BOLD)$(NAME_DEV)$(RESET)"
+	@$(MINGW_CC) $(OBJS_DEV) -o $(NAME_DEV)
+	@echo "$(GREEN_BOLD)Done compiling $(GREEN_UNDERLINE)$(NAME_DEV)"
+	@cp $(NAME_DEV) /mnt/e/Dev/voicemeeter_bypass_output/$(NAME_DEV)
 
 clean:
 	@rm -f $(OBJS)
