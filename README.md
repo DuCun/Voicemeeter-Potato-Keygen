@@ -1,12 +1,10 @@
 Voicemeeter "Keygen"
 ====================
 
-This is a working semi-automated tool to generate a key for Voicemeeter Potato.
+This is a working automated tool to generate a key for Voicemeeter Potato.
 
 To use it:
-1. open voicemeeter **64 bit** (IMPORTANT)
-2. open the license window (opens on startup if voicemeeter is unregistered or Menu > About Box / License ...)
-3. launch the executable.
-4. Done !
-
-You should not see the "Unlicensed" watermark anymore, and opening the license box again should show a valid license. This is the first release, so there may be some bugs. If you find any, please open an issue on the github page.
+1. make sure voicemeeter **64 bit** is opened (it can be in tray, as long as the process is running it should work. Make sure it's the 64bit version **voicemeeter8x64.exe**)
+2. launch the executable.
+And that's it. Voicemeeter should now be activated.
+You should not see the "Unlicensed" watermark anymore, and opening the license box again should show a valid license. If you find any, please open an issue on the github page (and include the logs, which should be in a file named **VoicemeeterBypass.log** in the same directory as the .exe)
