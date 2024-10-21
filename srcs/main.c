@@ -7,28 +7,11 @@
 #include <stdlib.h>
 #include <process.h>
 
-
-int main() {
-	DWORD voicemeeter64_pid = find_pid_by_process_name(VOICEMEETER_PROCESS_NAME);
-	if (voicemeeter64_pid == 0)
-	{
-		make_log("[ERROR] Voicemeeter process not found.");
-		return 1;
-	}
-
-	HANDLE voicemeeter64_handle = OpenProcess(PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, voicemeeter64_pid);
-	if (voicemeeter64_handle == NULL)
-	{
-		make_log("[ERROR] Failed to open Voicemeeter process handle.");
-		return 1;
-	}
-
-	DWORD_PTR voicemeeter64_base_address = get_process_base_address(voicemeeter64_pid);
-
-	if (FindWindow(NULL, REGISTRATION_WINDOW_TITLE) != NULL) {
+int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWORD_PTR voicemeeter64_base_address, LPCSTR popup_menu_element_name, LPCSTR registration_window_title)
+{
+	if (FindWindow(NULL, registration_window_title) != NULL) {
 		make_log("Registration window is already open, proceeding with bypass.");
 	} else {
-		/* FALLBACK METHOD, for now just click on coords 1,1 (voicemeeter logo), which opens registration window
 		// Open registration window (I couldnt click the menu directly (without absolute coords), so I set the return code for button clicked to the right one on every click, then just click anywhere on the window and it should open it)
 		HWND voicemeeter64_hwnd = FindWindow(NULL, VOICEMEETER_POTATO_WINDOW_NAME);
 		if (voicemeeter64_hwnd == NULL) {
@@ -48,24 +31,16 @@ int main() {
 
 		// Open the registration window debug loop
 		while (continue_debug) {
-			if (WaitForDebugEvent(&debug_event, VOICEMEETER_DEBUG_TIMEOUT) == 0) {
+			if (WaitForDebugEvent(&debug_event, 15000) == 0) {
 				int error = GetLastError();
-				make_log("[ERROR] Failed to wait for debug event: %d, try to restart Voicemeeter.", GetLastError());
+				make_log("[ERROR] Failed to wait for debug event: %d, try to restart Voicemeeter.", error);
 				return 1;
 			}
 
 			if (debug_event.dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT) {
 				if (set_breakpoint(voicemeeter64_handle, breakpoint_address) != 0)
 					return 1;
-
-				HANDLE thread = (HANDLE)_beginthreadex(NULL, 0, click_on_window_1_1, voicemeeter64_hwnd, 0, NULL);
-				if (thread == NULL) {
-					make_log("[ERROR] Failed to create thread: %d", GetLastError());
-					return 1;
-				}
-				make_log("Thread created to click on window.");
-				
-				CloseHandle(thread);
+				click_on_window_1_1(voicemeeter64_hwnd);
 			}
 			else if (debug_event.dwDebugEventCode == EXCEPTION_DEBUG_EVENT) {
 				if (debug_event.u.Exception.ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT) {
@@ -86,13 +61,11 @@ int main() {
 
 					if (context.Rip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
 						make_log("Breakpoint hit at address: %p", breakpoint_address);
-						// expected_code = context.Rax;
-						// make_log("Expected code: %llX", expected_code);
 						if (remove_breakpoint(voicemeeter64_handle, breakpoint_address) != 0) {
 							make_log("[ERROR] Failed to remove breakpoint after finding code.");
 							return 1;
 						}
-						context.Rax = CLICK_RAX_VALUE_REGISTRATION;
+						context.Rax = CLICK_RAX_VALUE_MENU_BUTTON;
 						context.Rip--; // go back to the original instruction
 						context.Dr7 = 0; // Clear debug register so that app doesn't crash when we resume
 						if (SetThreadContext(h_thread, &context) == 0) {
@@ -117,20 +90,23 @@ int main() {
 			make_log("[ERROR] Failed to detach debugger from Voicemeeter process: %d", GetLastError());
 			return 1;
 		}
-		*/
 
-		// discovered this by accident because i forgot to set the value in breakpoint and it still worked... lol
-		HWND voicemeeter64_hwnd = FindWindow(NULL, VOICEMEETER_POTATO_WINDOW_NAME);
-		if (voicemeeter64_hwnd == NULL) {
-			make_log("[ERROR] Voicemeeter window not found.");
+
+		HWND popup_menu_window_handle = find_active_popup_menu();
+		if (popup_menu_window_handle == NULL) {
 			return 1;
 		}
-		click_on_window_1_1((void *)voicemeeter64_hwnd);
-		make_log("Clicked on window, waiting for registration window to appear...");
-		wait_for_window(REGISTRATION_WINDOW_TITLE, NULL, WAIT_FOR_RESPONSE_WINDOW_TIMEOUT, VOICEMEETER_WINODW_POLL_INTERVAL);
+
+		if (click_popup_menu_item(popup_menu_window_handle, popup_menu_element_name) != 0) {
+			make_log("[ERROR] Failed to click on registration menu item.");
+			return 1;
+		}
+
+		make_log("Clicked on menu item, waiting for registration window to appear...");
+		wait_for_window(registration_window_title, NULL, WAIT_FOR_RESPONSE_WINDOW_TIMEOUT, VOICEMEETER_WINODW_POLL_INTERVAL);
 	}
 
-	t_registration_window_controls controls = fetch_registration_window_controls();
+	t_registration_window_controls controls = fetch_registration_window_controls(registration_window_title);
 	if (controls.mail_input == NULL || controls.registration_code_input == NULL || controls.activate_license_button == NULL)
 	{
 		if (controls.registration_code_input != NULL)
@@ -140,7 +116,7 @@ int main() {
 			if (strcmp(code, "XXXXXXXXXX") == 0)
 			{
 				make_log("[WARNIING] Voicemeeeter is already activated, bypass not needed, exiting now.");
-				HWND registration_window_handle = FindWindow(NULL, REGISTRATION_WINDOW_TITLE);
+				HWND registration_window_handle = FindWindow(NULL, registration_window_title);
 				if (registration_window_handle != NULL)
 				{
 					if (send_message_to_handle(registration_window_handle, WM_CLOSE, 0, 0) == 0)
@@ -272,6 +248,7 @@ int main() {
 			make_log("[ERROR] Failed to close activation success window.");
 			return 1;
 		}
+		return 0;
 	}
 
 	// instantly close the fail window and input the code, then press the button again, then wait for the success window
@@ -309,6 +286,33 @@ int main() {
 		// dont return this time since it still worked
 	}
 
-	make_log("Voicemeeter Bypass successfully completed.");
+	return 0;
+}
+
+int main() {
+	DWORD voicemeeter64_pid = find_pid_by_process_name(VOICEMEETER_PROCESS_NAME);
+	if (voicemeeter64_pid == 0)
+	{
+		make_log("[ERROR] Voicemeeter process not found.");
+		return 1;
+	}
+
+	HANDLE voicemeeter64_handle = OpenProcess(PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, voicemeeter64_pid);
+	if (voicemeeter64_handle == NULL)
+	{
+		make_log("[ERROR] Failed to open Voicemeeter process handle.");
+		return 1;
+	}
+
+	DWORD_PTR voicemeeter64_base_address = get_process_base_address(voicemeeter64_pid);
+
+	if (voicemeeter_keygen(voicemeeter64_handle, voicemeeter64_pid, voicemeeter64_base_address, POPUP_MENU_REGISTRATION_ELEMENT_NAME, REGISTRATION_WINDOW_TITLE) != 0)
+		return 1;
+	make_log("[SUCCESS] Voicemeeter Bypass successfully completed for Voicemeeter license");
+
+	if (voicemeeter_keygen(voicemeeter64_handle, voicemeeter64_pid, voicemeeter64_base_address, POPUP_MENU_VAIO_REGISTRATION_ELEMENT_NAME, VAIO_REGISTRATION_WINDOW_TITLE) != 0)
+		return 1;
+	make_log("[SUCCESS] Voicemeeter Bypass successfully completed for VAIO license");
+	
 	return 0;
 }

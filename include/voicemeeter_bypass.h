@@ -8,6 +8,7 @@
 #define VOICEMEETER_BANANA_VERSION "3.1.1.3"
 #define VOICEMEETER_BYPASS_LOG_FILE "VoicemeeeterBypass.log"
 #define REGISTRATION_WINDOW_TITLE "About / Registration info..."
+#define VAIO_REGISTRATION_WINDOW_TITLE "Extra VAIO Feature License"
 #define VOICEMEETER_POTATO_WINDOW_NAME "Voicemeeter Potato"
 #define VOICEMEETER_PROCESS_NAME "voicemeeter8x64.exe"
 #define ACTIVATION_FAILED_WINODW_TITLE "Activation Failed"
@@ -24,8 +25,10 @@
 #define VOICEMEETER_BREAKPOINT_RELATIVE_ADDRESS 0x94706 // original instruction is <sete sil> after comparing expected code with entered code
 #define WAIT_FOR_RESPONSE_WINDOW_TIMEOUT 1000 // ms, time for response winodw (activation failed or success) to apepar, this should be instant after pressing the button so low timeout
 #define VOICEMEETER_WINODW_POLL_INTERVAL 50 // ms, used in wait_for_window function
-// #define VOICEMEETER_CLICK_FUNCTION_BREAKPOINT_OFFSET 0x17EDD4 // on the cmp instruction (which then defines which button was clicked)
-// #define CLICK_RAX_VALUE_REGISTRATION 0x15C
+#define VOICEMEETER_CLICK_FUNCTION_BREAKPOINT_OFFSET 0x17EDD4 // on the cmp instruction (which then defines which button was clicked)
+#define CLICK_RAX_VALUE_MENU_BUTTON 0x15C
+#define POPUP_MENU_REGISTRATION_ELEMENT_NAME "About Box / License..."
+#define POPUP_MENU_VAIO_REGISTRATION_ELEMENT_NAME "VAIO Extension License..."
 
 // memory_helper.c
 DWORD find_pid_by_process_name(const char *name);
@@ -57,7 +60,9 @@ typedef struct s_registration_window_controls
 t_registration_window_controls fetch_registration_window_controls();
 LRESULT send_message_to_handle(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 LRESULT send_post_message_to_handle(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-unsigned __stdcall click_on_window_1_1(void *hwnd);
+void click_on_window_1_1(HWND window_handle);
+HWND find_active_popup_menu();
+int click_popup_menu_item(HWND menu_handle, LPCSTR menu_item_text);
 
 
 // debug.c
