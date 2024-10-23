@@ -25,7 +25,7 @@
 #define VOICEMEETER_BREAKPOINT_RELATIVE_ADDRESS 0xB2A12
 #define WAIT_FOR_RESPONSE_WINDOW_TIMEOUT 1000 // ms, time for response winodw (activation failed or success) to apepar, this should be instant after pressing the button so low timeout
 #define VOICEMEETER_WINODW_POLL_INTERVAL 50 // ms, used in wait_for_window function
-#define VOICEMEETER_CLICK_FUNCTION_BREAKPOINT_OFFSET 0x17EDD4 // on the cmp instruction (which then defines which button was clicked)
+#define VOICEMEETER_CLICK_FUNCTION_BREAKPOINT_OFFSET 0x18D500
 #define CLICK_RAX_VALUE_MENU_BUTTON 0x15C
 #define POPUP_MENU_REGISTRATION_ELEMENT_NAME "About Box / License..."
 #define POPUP_MENU_VAIO_REGISTRATION_ELEMENT_NAME "VAIO Extension License..."
