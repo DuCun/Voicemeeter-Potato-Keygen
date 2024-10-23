@@ -2,8 +2,7 @@ SRCS = $(wildcard srcs/*.c)
 OBJS = $(SRCS:.c=.o)
 
 # Replace with absolute path if needed
-# MINGW_CC_PATH = x86_64-w64-mingw32-gcc
-MINGW_CC_PATH = /usr/bin/i686-w64-mingw32-gcc
+MINGW_CC_PATH = x86_64-w64-mingw32-gcc
 
 NAME = VoicemeeterKeygen.exe
 NAME_DEV = VoicemeeterKeygen_dev.exe
@@ -11,7 +10,7 @@ NAME_DEV = VoicemeeterKeygen_dev.exe
 # CC = gcc -Wall -Wextra -Werror
 
 # https://stackoverflow.com/questions/4702732/the-program-cant-start-because-libgcc-s-dw2-1-dll-is-missing
-MINGW_CC = $(MINGW_CC_PATH) -m32 -Wall -Wextra -Werror -static -static-libgcc -static-libstdc++
+MINGW_CC = $(MINGW_CC_PATH) -Wall -Wextra -Werror -static -static-libgcc -static-libstdc++
 
 SHELL = zsh
 

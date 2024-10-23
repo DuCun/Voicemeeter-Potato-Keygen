@@ -80,10 +80,13 @@ BOOL CALLBACK _enum_active_popup_menu(HWND hwnd, LPARAM lParam) {
             make_log("[ERROR] Failed to get thread ID for popup menu.");
             return FALSE;
         }
-        DWORD voicemeeter_pid = find_pid_by_process_name(VOICEMEETER_PROCESS_NAME);
+        DWORD voicemeeter_pid = find_pid_by_process_name(VOICEMEETER32_PROCESS_NAME);
         if (voicemeeter_pid == 0) {
-            make_log("[ERROR] Voicemeeter Potato process not found.");
-            return FALSE;
+            voicemeeter_pid = find_pid_by_process_name(VOICEMEETER64_PROCESS_NAME);
+            if (voicemeeter_pid == 0) {
+                make_log("[ERROR] Voicemeeter Potato process not found.");
+                return FALSE;
+            }
         }
 
         if (menu_process_id != voicemeeter_pid) {
