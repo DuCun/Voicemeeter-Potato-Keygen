@@ -6,15 +6,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <process.h>
+#include <stdint.h>
 
-int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWORD_PTR voicemeeter64_base_address, LPCSTR popup_menu_element_name, LPCSTR registration_window_title)
+int voicemeeter_keygen(HANDLE voicemeeter32_handle, DWORD voicemeeter32_pid, DWORD_PTR voicemeeter32_base_address, LPCSTR popup_menu_element_name, LPCSTR registration_window_title)
 {
 	if (FindWindow(NULL, registration_window_title) != NULL) {
 		make_log("Registration window is already open, proceeding with bypass.");
 	} else {
 		// Open registration window (I couldnt click the menu directly (without absolute coords), so I set the return code for button clicked to the right one on every click, then just click anywhere on the window and it should open it)
-		HWND voicemeeter64_hwnd = FindWindow(NULL, VOICEMEETER_POTATO_WINDOW_NAME);
-		if (voicemeeter64_hwnd == NULL) {
+		HWND voicemeeter32_hwnd = FindWindow(NULL, VOICEMEETER_POTATO_WINDOW_NAME);
+		if (voicemeeter32_hwnd == NULL) {
 			make_log("[ERROR] Voicemeeter window not found.");
 			return 1;
 		}
@@ -22,9 +23,9 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 		int continue_debug = 1;
 		DEBUG_EVENT debug_event;
 		CONTEXT context;
-		void *breakpoint_address = (void *)(voicemeeter64_base_address + VOICEMEETER_CLICK_FUNCTION_BREAKPOINT_OFFSET);
+		void *breakpoint_address = (void *)(voicemeeter32_base_address + VOICEMEETER_CLICK_FUNCTION_BREAKPOINT_OFFSET);
 
-		if (DebugActiveProcess(voicemeeter64_pid) == 0) {
+		if (DebugActiveProcess(voicemeeter32_pid) == 0) {
 			make_log("[ERROR] Failed to attach debugger to Voicemeeter process: %d", GetLastError());
 			return 1;
 		}
@@ -38,9 +39,9 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 			}
 
 			if (debug_event.dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT) {
-				if (set_breakpoint(voicemeeter64_handle, breakpoint_address) != 0)
+				if (set_breakpoint(voicemeeter32_handle, breakpoint_address) != 0)
 					return 1;
-				click_on_window_1_1(voicemeeter64_hwnd);
+				click_on_window_1_1(voicemeeter32_hwnd);
 			}
 			else if (debug_event.dwDebugEventCode == EXCEPTION_DEBUG_EVENT) {
 				if (debug_event.u.Exception.ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT) {
@@ -59,14 +60,14 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 						continue;
 					}
 
-					if (context.Rip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
+					if (context.Eip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
 						make_log("Breakpoint hit at address: %p", breakpoint_address);
-						if (remove_breakpoint(voicemeeter64_handle, breakpoint_address) != 0) {
+						if (remove_breakpoint(voicemeeter32_handle, breakpoint_address) != 0) {
 							make_log("[ERROR] Failed to remove breakpoint after finding code.");
 							return 1;
 						}
-						context.Rax = CLICK_RAX_VALUE_MENU_BUTTON;
-						context.Rip--; // go back to the original instruction
+						context.Eax = CLICK_RAX_VALUE_MENU_BUTTON;
+						context.Eip--; // go back to the original instruction
 						context.Dr7 = 0; // Clear debug register so that app doesn't crash when we resume
 						if (SetThreadContext(h_thread, &context) == 0) {
 							make_log("[ERROR] Failed to set thread context: %d", GetLastError());
@@ -86,7 +87,7 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 			ContinueDebugEvent(debug_event.dwProcessId, debug_event.dwThreadId, DBG_CONTINUE);
 		}
 
-		if (DebugActiveProcessStop(voicemeeter64_pid) == 0) {
+		if (DebugActiveProcessStop(voicemeeter32_pid) == 0) {
 			make_log("[ERROR] Failed to detach debugger from Voicemeeter process: %d", GetLastError());
 			return 1;
 		}
@@ -147,10 +148,10 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 	DEBUG_EVENT debug_event;
 	CONTEXT context;
 	int retry = 0;
-	void *breakpoint_address = (void *)(voicemeeter64_base_address + VOICEMEETER_BREAKPOINT_RELATIVE_ADDRESS);
-	DWORD64 expected_code = 0;
+	void *breakpoint_address = (void *)(voicemeeter32_base_address + VOICEMEETER_BREAKPOINT_RELATIVE_ADDRESS);
+	uint64_t expected_code = 0;
 
-	if (DebugActiveProcess(voicemeeter64_pid) == 0) {
+	if (DebugActiveProcess(voicemeeter32_pid) == 0) {
 		make_log("[ERROR] Failed to attach debugger to Voicemeeter process: %d", GetLastError());
 		return 1;
 	}
@@ -176,7 +177,7 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 		}
 
 		if (debug_event.dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT) {
-			if (set_breakpoint(voicemeeter64_handle, breakpoint_address) != 0)
+			if (set_breakpoint(voicemeeter32_handle, breakpoint_address) != 0)
 				return 1;
 
 			make_log("Breakpoint is set, pressing activate license button.");
@@ -200,15 +201,15 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 					continue;
 				}
 
-				if (context.Rip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
+				if (context.Eip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
 					make_log("Breakpoint hit at address: %p", breakpoint_address);
-					expected_code = context.Rax;
+					expected_code = (uint64_t)context.Edx << 32 | context.Eax;
 					make_log("Expected code: %llX", expected_code);
-					if (remove_breakpoint(voicemeeter64_handle, breakpoint_address) != 0) {
+					if (remove_breakpoint(voicemeeter32_handle, breakpoint_address) != 0) {
 						make_log("[ERROR] Failed to remove breakpoint after finding code.");
 						return 1;
 					}
-					context.Rip--; // go back to the original instruction
+					context.Eip--; // go back to the original instruction
 					context.Dr7 = 0; // Clear debug register so that app doesn't crash when we resume
 					// We could also set rbx to expected value here, but we wouls still need to input the code after that (on restart / reopen license window)
 					if (SetThreadContext(h_thread, &context) == 0) {
@@ -229,7 +230,7 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 		ContinueDebugEvent(debug_event.dwProcessId, debug_event.dwThreadId, DBG_CONTINUE);
 	}
 
-	if (DebugActiveProcessStop(voicemeeter64_pid) == 0) {
+	if (DebugActiveProcessStop(voicemeeter32_pid) == 0) {
 		make_log("[ERROR] Failed to detach debugger from Voicemeeter process: %d", GetLastError());
 		return 1;
 	}
@@ -290,27 +291,27 @@ int voicemeeter_keygen(HANDLE voicemeeter64_handle, DWORD voicemeeter64_pid, DWO
 }
 
 int main() {
-	DWORD voicemeeter64_pid = find_pid_by_process_name(VOICEMEETER_PROCESS_NAME);
-	if (voicemeeter64_pid == 0)
+	DWORD voicemeeter32_pid = find_pid_by_process_name(VOICEMEETER_PROCESS_NAME);
+	if (voicemeeter32_pid == 0)
 	{
 		make_log("[ERROR] Voicemeeter process not found.");
 		return 1;
 	}
 
-	HANDLE voicemeeter64_handle = OpenProcess(PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, voicemeeter64_pid);
-	if (voicemeeter64_handle == NULL)
+	HANDLE voicemeeter32_handle = OpenProcess(PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, voicemeeter32_pid);
+	if (voicemeeter32_handle == NULL)
 	{
 		make_log("[ERROR] Failed to open Voicemeeter process handle.");
 		return 1;
 	}
 
-	DWORD_PTR voicemeeter64_base_address = get_process_base_address(voicemeeter64_pid);
+	DWORD_PTR voicemeeter32_base_address = get_process_base_address(voicemeeter32_pid);
 
-	if (voicemeeter_keygen(voicemeeter64_handle, voicemeeter64_pid, voicemeeter64_base_address, POPUP_MENU_REGISTRATION_ELEMENT_NAME, REGISTRATION_WINDOW_TITLE) != 0)
+	if (voicemeeter_keygen(voicemeeter32_handle, voicemeeter32_pid, voicemeeter32_base_address, POPUP_MENU_REGISTRATION_ELEMENT_NAME, REGISTRATION_WINDOW_TITLE) != 0)
 		return 1;
 	make_log("[SUCCESS] Voicemeeter Bypass successfully completed for Voicemeeter license");
 
-	if (voicemeeter_keygen(voicemeeter64_handle, voicemeeter64_pid, voicemeeter64_base_address, POPUP_MENU_VAIO_REGISTRATION_ELEMENT_NAME, VAIO_REGISTRATION_WINDOW_TITLE) != 0)
+	if (voicemeeter_keygen(voicemeeter32_handle, voicemeeter32_pid, voicemeeter32_base_address, POPUP_MENU_VAIO_REGISTRATION_ELEMENT_NAME, VAIO_REGISTRATION_WINDOW_TITLE) != 0)
 		return 1;
 	make_log("[SUCCESS] Voicemeeter Bypass successfully completed for VAIO license");
 	

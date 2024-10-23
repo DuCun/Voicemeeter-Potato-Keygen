@@ -10,7 +10,7 @@
 #define REGISTRATION_WINDOW_TITLE "About / Registration info..."
 #define VAIO_REGISTRATION_WINDOW_TITLE "Extra VAIO Feature License"
 #define VOICEMEETER_POTATO_WINDOW_NAME "Voicemeeter Potato"
-#define VOICEMEETER_PROCESS_NAME "voicemeeter8x64.exe"
+#define VOICEMEETER_PROCESS_NAME "voicemeeter8.exe"
 #define ACTIVATION_FAILED_WINODW_TITLE "Activation Failed"
 #define ACTIVATION_SUCCESS_WINODW_TITLE "Activation Success"
 
@@ -22,7 +22,7 @@
 
 #define VOICEMEETER_DEBUG_TIMEOUT 200 // ms, probably means app froze or button press didn't work, so we can set low timeout since button press should be almost instant
 #define VOICEMEETER_DEBUG_RETRY_COUNT 10 // retry x times to press the button (only on timeout, other error will instantly quit)
-#define VOICEMEETER_BREAKPOINT_RELATIVE_ADDRESS 0x94706 // original instruction is <sete sil> after comparing expected code with entered code
+#define VOICEMEETER_BREAKPOINT_RELATIVE_ADDRESS 0xB2A12
 #define WAIT_FOR_RESPONSE_WINDOW_TIMEOUT 1000 // ms, time for response winodw (activation failed or success) to apepar, this should be instant after pressing the button so low timeout
 #define VOICEMEETER_WINODW_POLL_INTERVAL 50 // ms, used in wait_for_window function
 #define VOICEMEETER_CLICK_FUNCTION_BREAKPOINT_OFFSET 0x17EDD4 // on the cmp instruction (which then defines which button was clicked)
