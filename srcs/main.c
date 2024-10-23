@@ -58,7 +58,8 @@ int voicemeeter_keygen(HANDLE voicemeeter_handle, DWORD voicemeeter_pid, DWORD_P
 			if (debug_event.dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT) {
 				if (set_breakpoint(voicemeeter_handle, breakpoint_address) != 0)
 					return 1;
-				click_on_window_1_1(voicemeeter_hwnd);
+
+				make_log("Breakpoint is set, clicking on window.");
 			}
 			else if (debug_event.dwDebugEventCode == EXCEPTION_DEBUG_EVENT) {
 				if (debug_event.u.Exception.ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT) {
@@ -83,7 +84,7 @@ int voicemeeter_keygen(HANDLE voicemeeter_handle, DWORD voicemeeter_pid, DWORD_P
 						if (context.Rip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
 							make_log("Breakpoint hit at address: %p", breakpoint_address);
 							if (remove_breakpoint(voicemeeter_handle, breakpoint_address) != 0) {
-								make_log("[ERROR] Failed to remove breakpoint after finding code.");
+								make_log("[ERROR] Failed to remove breakpoint after opening menu.");
 								return 1;
 							}
 							context.Rax = CLICK_RAX_VALUE_MENU_BUTTON;
@@ -109,7 +110,7 @@ int voicemeeter_keygen(HANDLE voicemeeter_handle, DWORD voicemeeter_pid, DWORD_P
 						if (context_32bit.Eip == (DWORD_PTR)breakpoint_address + 1) { // breakpoint_address + 1 because the original instruction is 1 byte long, so rip will be at the next instruction
 							make_log("Breakpoint hit at address: %p", breakpoint_address);
 							if (remove_breakpoint(voicemeeter_handle, breakpoint_address) != 0) {
-								make_log("[ERROR] Failed to remove breakpoint after finding code.");
+								make_log("[ERROR] Failed to remove breakpoint after opening menu.");
 								return 1;
 							}
 							context_32bit.Eax = CLICK_RAX_VALUE_MENU_BUTTON;
