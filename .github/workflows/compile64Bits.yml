@@ -2,8 +2,7 @@ name: Build and Release VoicemeeterBypass
 
 on:
   push:
-    tags:
-      - 'v*'  # Se ejecuta cuando se crea un nuevo tag que sigue el patrón 'v*'
+    branches: [ main ]
 
 jobs:
   build:
